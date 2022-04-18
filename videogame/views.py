@@ -3,32 +3,39 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from . models import TopScore
 from django.views.decorators.csrf import csrf_exempt
-from json import loads,dumps
+from json import loads, dumps
 import collections
 import sqlite3
 from django.http import Http404
 
 # Create your views here.
+
+
 def index(request):
-    #return HttpResponse('<h1> Hola desde Django </h1>')
+    # return HttpResponse('<h1> Hola desde Django </h1>')
     return render(request, 'index.html')
+
+
 def proceso(request):
     nombre = request.POST["nombre"]
     nombre = nombre.upper()
-    return render(request,'proceso.html',{'name':nombre})
+    return render(request, 'proceso.html', {'name': nombre})
+
 
 def datos(request):
     jugadores = TopScore.objects.all()
-    return render(request,'datos.html',{'lista_jugadores':jugadores})
+    return render(request, 'datos.html', {'lista_jugadores': jugadores})
+
 
 @csrf_exempt
 def unity(request):
     sesion = {
-        "id":1,
-        "userId":1,
-        "score":100
+        "id": 1,
+        "userId": 1,
+        "score": 100
     }
     return JsonResponse(sesion)
+
 
 @csrf_exempt
 def buscaUsuario(request):
@@ -38,7 +45,7 @@ def buscaUsuario(request):
     mydb = sqlite3.connect("db.sqlite3")
     cur = mydb.cursor()
     stringSQL = '''SELECT id, name, score FROM topscore WHERE name = ?'''
-    rows = cur.execute(stringSQL,(nombre_jugador,))
+    rows = cur.execute(stringSQL, (nombre_jugador,))
     r = rows.fetchone()
     if r == None:
         j = '{"error":"No hay renglones"}'
@@ -50,6 +57,7 @@ def buscaUsuario(request):
         j = dumps(d)
     mydb.close()
     return HttpResponse(j, content_type="text/json-comment-filtered")
+
 
 def listaUsuarios(request):
     mydb = sqlite3.connect("db.sqlite3")
@@ -66,20 +74,22 @@ def listaUsuarios(request):
     mydb.close()
     return HttpResponse(j, content_type="text/json-comment-filtered")
 
+
 @csrf_exempt
 def unity2(request):
     lista = []
     retorno = {
-    "id": 1,
-    "user_id": 2,
-    "username": "username",
-    "country": "MXN",
-    "total_score": "7:38",
-    "time_played": "5:31",
-    "dateCreated": "20220202:12:00:00"
+        "id": 1,
+        "user_id": 2,
+        "username": "username",
+        "country": "MXN",
+        "total_score": "7:38",
+        "time_played": "5:31",
+        "dateCreated": "20220202:12:00:00"
     }
     lista.append(retorno)
     return JsonResponse(lista, safe=False)
+
 
 def lista_party(request):
     mydb = sqlite3.connect("db.sqlite3")
@@ -97,19 +107,20 @@ def lista_party(request):
     j = dumps(lista_salida)
     return HttpResponse(j, content_type="text/json-comment-filtered")
 
+
 @csrf_exempt
 def usertopscores(request):
     body_unicode = request.body.decode('utf-8')
-    body = loads(body_unicode)
+    body = loads(body_unicode)  # deserealiza JSON a objeto
     usuario = body['user_id']
     print(usuario)
     mydb = sqlite3.connect("db.sqlite3")
     cur = mydb.cursor()
     stringSQL = '''SELECT id, user_id, session_id, total_score, 
     time_played, date_Created FROM party WHERE user_id=?'''
-    rows = cur.execute(stringSQL,(str(usuario),))
+    rows = cur.execute(stringSQL, (str(usuario),))
     rr = rows.fetchone()
-    rows = cur.execute(stringSQL,(str(usuario),))
+    rows = cur.execute(stringSQL, (str(usuario),))
     if rr == None:
         j = '{"error":"No records for this user_id"}'
     else:
@@ -121,8 +132,9 @@ def usertopscores(request):
             d["username"] = r[1]
             d["score"] = r[3]
             lista_salida.append(d)
-        j = dumps(lista_salida)
+        j = dumps(lista_salida)  # from obj to a JSON
     return HttpResponse(j, content_type="text/json-comment-filtered")
+
 
 def usertopscores2(request):
     usuario = request.GET['user_id']
@@ -130,9 +142,9 @@ def usertopscores2(request):
     cur = mydb.cursor()
     stringSQL = '''SELECT id, user_id, session_id, total_score, 
     time_played, date_Created FROM party WHERE user_id=?'''
-    rows = cur.execute(stringSQL,(str(usuario),))
+    rows = cur.execute(stringSQL, (str(usuario),))
     rr = rows.fetchone()
-    rows = cur.execute(stringSQL,(str(usuario),))
+    rows = cur.execute(stringSQL, (str(usuario),))
     if rr == None:
         raise Http404("user_id does not exist")
     else:
@@ -147,66 +159,68 @@ def usertopscores2(request):
         j = dumps(lista_salida)
     return HttpResponse(j, content_type="text/json-comment-filtered")
 
+
 def main(request):
-    return render(request,'main.html')
+    return render(request, 'main.html')
+
 
 def grafica1(request):
     h_var = 'X'
     v_var = 'Y'
-    data = [[h_var,v_var]]
-    for i in range(0,11):
-        data.append([randrange(101),randrange(101)])
-    h_var_JSON = dumps(h_var)
-    v_var_JSON = dumps(v_var)
-    modified_data = dumps(data)
+    data = [[h_var, v_var]]
+    for i in range(0, 11):
+        data.append([randrange(101), randrange(101)])
+    h_var_JSON = dumps(h_var)  # de un obj a un JSON
+    v_var_JSON = dumps(v_var)  # de un obj a un JSON
+    modified_data = dumps(data)  # de un obj a un JSON
     print(modified_data)
-    return render(request,"grafica1.html",{'values':modified_data,'h_title':h_var_JSON,'v_title':v_var_JSON})
+    return render(request, "grafica1.html", {'values': modified_data, 'h_title': h_var_JSON, 'v_title': v_var_JSON})
+
 
 def grafica(request):
     h_var = 'X'
     v_var = 'Y'
-    data = [[h_var,v_var]]
-    for i in range(0,11):
-        data.append([randrange(101),randrange(101)])
+    data = [[h_var, v_var]]
+    for i in range(0, 11):
+        data.append([randrange(101), randrange(101)])
     h_var_json = dumps(h_var)
     v_var_json = dumps(v_var)
     datos_json = dumps(data)
-    return render(request,'grafica.html',{'values':datos_json,'h_title':h_var_json,'v_title':v_var_json})
+    return render(request, 'grafica.html', {'values': datos_json, 'h_title': h_var_json, 'v_title': v_var_json})
+
 
 def graficas(request):
 
-    #Chart 1
+    # Chart 1
     h_var = 'X'
     v_var = 'Y'
-    data = [[h_var,v_var]]
-    for i in range(0,11):
-        data.append([randrange(101),randrange(101)])
+    data = [[h_var, v_var]]
+    for i in range(0, 11):
+        data.append([randrange(101), randrange(101)])
     h_var_json = dumps(h_var)
     v_var_json = dumps(v_var)
     datos_json = dumps(data)
 
-
-    #Chart 2
+    # Chart 2
     h_var2 = 'X'
     v_var2 = 'Y'
-    data2 = [[h_var2,v_var2]]
-    for i in range(0,11):
-        data2.append([randrange(101),randrange(101)])
+    data2 = [[h_var2, v_var2]]
+    for i in range(0, 11):
+        data2.append([randrange(101), randrange(101)])
     h_var_json2 = dumps(h_var2)
     v_var_json2 = dumps(v_var2)
     datos_json2 = dumps(data2)
 
-    
-    #Chart 3
+    # Chart 3
     leg = 'User name'
     bar = 'Total score'
-    datos = [[leg,bar]]
-    datos.append(['The Rock', randrange(500,1000)])
-    datos.append(['Mermaid', randrange(500,1000)])
+    datos = [[leg, bar]]
+    datos.append(['The Rock', randrange(500, 1000)])
+    datos.append(['Mermaid', randrange(500, 1000)])
     leg_json = dumps(leg)
     bar_json = dumps(bar)
     datosjson = dumps(datos)
 
-    return render(request,'graficas.html',{'values':datos_json,'h_title':h_var_json,'v_title':v_var_json,
-                                           'values2':datos_json2,'h_title2':h_var_json2,'v_title2':v_var_json2,
-                                           'leg':leg_json,'bar':bar_json,'datosjson':datosjson})
+    return render(request, 'graficas.html', {'values': datos_json, 'h_title': h_var_json, 'v_title': v_var_json,
+                                             'values2': datos_json2, 'h_title2': h_var_json2, 'v_title2': v_var_json2,
+                                             'leg': leg_json, 'bar': bar_json, 'datosjson': datosjson})
